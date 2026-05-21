@@ -175,7 +175,6 @@ GPT-4o:
 ## 🧩 TODO (Roadmap)
 * [ ] Evaluation 
 * [ ] Dockerization
-* [ ] Observability (LangSmith / tracing)
 
 ## ⚡ Tech Stack
 
