@@ -130,7 +130,9 @@ curl -X POST "http://127.0.0.1:8000/api/chat" \
 
 `X-User-ID` identifies the user session — memory is stored and loaded per user. Defaults to `anonymous` if omitted.
 
-## Key Features
+## 🧩 TODO (Roadmap)
+* [ ] Evaluation 
+* [ ] Dockerization
 
 - Conversational memory (short + long-term via Redis)
 - RAG-based document retrieval (ChromaDB)
