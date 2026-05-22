@@ -1,10 +1,21 @@
+from functools import lru_cache
+
 from langchain_chroma import Chroma
+
+from config import get_settings
 from utils.embedding_adapter import get_embeddings
 
-def chroma(collection_name="policies", persist_directory="./chroma_db"):
-    vectorstore = Chroma(
-        collection_name=collection_name,
-        persist_directory=persist_directory,
-        embedding_function=get_embeddings()
+
+@lru_cache
+def get_vectorstore() -> Chroma:
+    setting = get_settings()
+    return Chroma(
+        collection_name=setting.chroma_collection,
+        persist_directory=setting.chroma_persist_dir,
+        embedding_function=get_embeddings(),
     )
-    return vectorstore
+
+
+# backward-compatible alias
+def chroma() -> Chroma:
+    return get_vectorstore()

@@ -1,9 +1,12 @@
-from db.vector import chroma
+import logging
 
-vectorstore = chroma()
+from db.vector import get_vectorstore
+
+logger = logging.getLogger(__name__)
+
 
 def retrieve_context(state):
-    docs = vectorstore.similarity_search(state["question"], k=3)
-
-    context = "\n\n".join([d.page_content for d in docs])
+    docs = get_vectorstore().similarity_search(state["question"], k=3)
+    context = "\n\n".join(d.page_content for d in docs)
+    logger.debug("Retrieved %d docs for query", len(docs))
     return {"docs": context}

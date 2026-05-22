@@ -1,11 +1,13 @@
-import os
-from dotenv import load_dotenv
+from functools import lru_cache
 
-load_dotenv()
+from config import get_settings
 
+
+@lru_cache
 def get_embeddings():
-    provider = os.getenv("EMBEDDING_PROVIDER", "openai").lower()
-    model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    setting = get_settings()
+    provider = setting.embedding_provider.lower()
+    model = setting.embedding_model
 
     if provider == "openai":
         from langchain_openai import OpenAIEmbeddings

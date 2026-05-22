@@ -1,9 +1,14 @@
 import json
+import logging
+
 from langchain_core.messages import AIMessage, HumanMessage
+
 from db.redis_client import redis
 
-def load_memory(state):
+logger = logging.getLogger(__name__)
 
+
+def load_memory(state):
     user_id = state["user_id"]
     data = redis.get(user_id)
 
@@ -17,7 +22,6 @@ def load_memory(state):
             messages.append(HumanMessage(content=m["content"]))
         else:
             messages.append(AIMessage(content=m["content"]))
-    return {
-        "messages": messages,
-        "summary": data.get("summary", "")
-    }
+
+    logger.debug("Loaded memory for user %s (%d messages)", user_id, len(messages))
+    return {"messages": messages, "summary": data.get("summary", "")}
