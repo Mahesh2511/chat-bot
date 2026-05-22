@@ -1,24 +1,43 @@
 
-# AI Chatbot Backend Service
+# 🤖 AI Chatbot Backend Service (LangChain + LangGraph + RAG + FastAPI)
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
 ![LangChain](https://img.shields.io/badge/LangChain-LLM%20Orchestration-orange)
 ![ChromaDB](https://img.shields.io/badge/VectorDB-Chroma-purple)
+![LLM](https://img.shields.io/badge/LLM-OpenAI%20%7C%20Anthropic%20%7C%20Groq-black)
 
-## Project Overview
+## 📌 Project Overview
 
-A production-ready AI chatbot backend built with:
+This project is a **production-style AI chatbot backend** built using:
 
-- **LangGraph** for conversation orchestration
-- **RAG pipeline** using ChromaDB
-- **Multi-LLM support** — OpenAI, Anthropic, Groq
-- **FastAPI** for the HTTP layer
-- **Redis** for short and long-term memory
+* 🧠 LangGraph for conversation orchestration
+* 🔍 RAG pipeline using ChromaDB
+* 💬 Multi-LLM support (OpenAI, Anthropic, Groq)
+* ⚡ FastAPI for backend APIs
+* 🧠 Redis for memory storage
 
-Supports conversational memory, document-based Q&A, multilingual responses (Arabic / English), and scalable modular design.
+It supports:
 
-## Architecture
+* Conversational memory
+* Document-based Q&A (RAG)
+* Context-aware responses
+* Multilingual responses (Arabic / English)
+* Scalable backend design
+
+## 🎯 Why This Project
+
+Most chatbot APIs are stateless and cannot maintain long-term context.
+
+This project solves that by combining:
+- Stateful memory (Redis)
+- Long-term summarization
+- RAG-based knowledge retrieval
+- LangGraph orchestration
+
+Making it suitable for real-world SaaS integrations.
+
+## 🧠 Architecture
 
 ```
 User Query
@@ -26,32 +45,43 @@ User Query
 FastAPI (/api/chat)
    ↓
 LangGraph Orchestrator
-   ├── Load Memory      (Redis)
+   ├── Load Memory (Redis)
    ├── Retrieve Context (ChromaDB)
-   ├── Generate Answer  (LLM)
-   ├── Summarize
-   └── Store Memory     (Redis)
+   ├── Generate Answer (LLM)
+   ├── Summarize Conversation
+   └── Store Memory (Redis)
    ↓
 Response to User
 ```
 
-## Setup
+## 🧠 How It Works
 
-### 1. Install Miniconda
+1. User sends a question
+2. System loads conversation history from Redis
+3. Relevant documents are retrieved from ChromaDB (RAG)
+4. LangGraph orchestrates the flow:
+   - memory → retrieval → reasoning → response
+5. LLM generates a final contextual answer
+6. Conversation is updated + summarized for future use
+
+## ⚙️ Setup Instructions
+
+## 🧩 1. Install Miniconda
 
 ```bash
+Visit:- https://www.anaconda.com/docs/getting-started/miniconda/install/mac-cli-install
 bash ~/Downloads/Miniconda3-*.sh
 source ~/miniconda3/bin/activate
 ```
 
-### 2. Create Environment
+## 🐍 2. Create Environment
 
 ```bash
 conda create -n chat-bot python=3.10
 conda activate chat-bot
 ```
 
-### 3. Clone and Install
+## 📦 3. Clone and Install Dependencies
 
 ```bash
 git clone https://github.com/hasandeveloper/chat-bot.git
@@ -59,7 +89,7 @@ cd chat-bot
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment
+## ⚠️ 4. Configure Environment Variables
 
 Copy the example file and fill in your values:
 
@@ -70,92 +100,131 @@ cp .env.example .env
 Key variables:
 
 ```env
-OPENAI_API_KEY=your_key_here
+👉 Get your key from: https://platform.openai.com/account/api-keys
+OPENAI_API_KEY=your_openai_key_here
 
 LLM_PROVIDER=openai          # openai | anthropic | groq
 LLM_MODEL=gpt-4o-mini
-
-EMBEDDING_PROVIDER=openai    # openai | huggingface
-EMBEDDING_MODEL=text-embedding-3-small
 
 REDIS_HOST=localhost
 REDIS_PORT=6379
 ```
 
-See [.env.example](.env.example) for the full list.
+See [.env.example](.env.example) for the full list of options.
 
-### 5. Run Server
+## 🚀 5. Run Server
 
 ```bash
 uvicorn main:app --reload
 ```
 
-Server runs at `http://127.0.0.1:8000`
+📍 Server:
 
----
+```
+http://127.0.0.1:8000
+```
 
-Or run everything with Docker:
+Or run with Docker (includes Redis):
 
 ```bash
 docker-compose up --build
 ```
 
-## API
-
-### Health Check
-
-```
-GET /health
-```
-
-### Document Ingestion
+## 📥 6. Document Ingestion (S3 → ChromaDB)
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/api/ingest" \
   -H "Content-Type: application/json" \
   -d '{
     "file_name": "terms_conditions",
-    "s3_url": "https://your-bucket.s3.amazonaws.com/terms.pdf"
+    "s3_url": "https://your-s3-url.pdf"
   }'
 ```
 
-### Chat
+## 💬 7. Chat API
+
+### Endpoint
+
+```
+POST /api/chat
+```
+
+### Request
+
+```json
+{
+  "q": "what are the return policies?"
+}
+```
+
+### Example
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/api/chat" \
   -H "Content-Type: application/json" \
   -H "X-User-ID: user_123" \
-  -d '{"q": "what is the return policy?"}'
+  -d '{"q":"what is return policy?"}'
 ```
 
-`X-User-ID` identifies the user session — memory is stored and loaded per user. Defaults to `anonymous` if omitted.
+> `X-User-ID` identifies the user session — memory is stored and loaded per user. Defaults to `anonymous` if omitted.
+
+## 🏥 8. Health Check
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+## 🧠 Core System Design
+
+### 🔹 Memory System
+Redis stores:
+- Full conversation history
+- Running conversation summary (for long-term context)
+- TTL-based expiry (configurable via `REDIS_TTL_SECONDS`)
+
+### 🔹 RAG System
+ChromaDB:
+- Stores embedded documents
+- Retrieves top-k relevant context per query
+- SHA-256 hash-based duplicate detection
+
+### 🔹 LLM Layer
+Configurable via environment variables:
+- Uses conversation summary (long-term memory)
+- Uses recent messages (short-term memory)
+- Uses retrieved context (RAG)
+- Generates final response in the user's language (Arabic / English)
+
+## 🧠 Key Features
+
+* ✅ Conversational memory (short + long-term)
+* ✅ RAG-based retrieval system
+* ✅ Multi-LLM provider support (OpenAI, Anthropic, Groq)
+* ✅ Multilingual responses (Arabic / English auto-detected)
+* ✅ LangGraph workflow orchestration
+* ✅ Redis-based persistence with TTL
+* ✅ Modular backend design
+* ✅ FastAPI production API layer
+* ✅ Dockerized with Docker Compose
+* ✅ Structured logging + CORS + input validation
 
 ## 🧩 TODO (Roadmap)
-* [ ] Evaluation 
-* [ ] Dockerization
+* [ ] Evaluation
+* [ ] Observability (LangSmith / tracing)
 
-- Conversational memory (short + long-term via Redis)
-- RAG-based document retrieval (ChromaDB)
-- Multi-LLM provider support (OpenAI, Anthropic, Groq)
-- Multilingual responses — Arabic and English, detected automatically
-- LangGraph workflow orchestration
-- Dockerized with Redis included
-- Structured logging, CORS, input validation
+## ⚡ Tech Stack
 
-## Tech Stack
+* **Backend:** FastAPI
+* **LLM:** OpenAI / Anthropic / Groq
+* **Orchestration:** LangGraph
+* **Framework:** LangChain
+* **Vector DB:** ChromaDB
+* **Cache / Memory:** Redis
+* **Runtime:** Python 3.10
+* **Container:** Docker + Docker Compose
 
-| Layer | Technology |
-|---|---|
-| Backend | FastAPI |
-| Orchestration | LangGraph |
-| LLM | OpenAI / Anthropic / Groq |
-| Framework | LangChain |
-| Vector DB | ChromaDB |
-| Memory | Redis |
-| Runtime | Python 3.10 |
-| Container | Docker + Docker Compose |
+## 📌 Summary
 
-## Roadmap
+This project demonstrates a **real-world production architecture for AI chatbots** combining:
 
-- [ ] Observability (LangSmith / tracing)
-- [ ] Evaluation framework
+> RAG + Memory + LLM + Backend Engineering
