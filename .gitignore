@@ -1,5 +1,7 @@
 poetry.lock
 chroma_db
+.env
+
 # macOS system files
 .DS_Store
 __pycache__

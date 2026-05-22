@@ -1,11 +1,10 @@
-import os
-from dotenv import load_dotenv
+from config import get_settings
 
-load_dotenv()
 
-def get_llm(temperature=0, max_tokens=1000):
-    provider = os.getenv("LLM_PROVIDER", "openai").lower()
-    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+def get_llm(temperature: float = 0, max_tokens: int = 1000):
+    setting = get_settings()
+    provider = setting.llm_provider.lower()
+    model = setting.llm_model
 
     if provider == "openai":
         from langchain_openai import ChatOpenAI
