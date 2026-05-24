@@ -209,6 +209,7 @@ Configurable via environment variables:
 * ✅ Structured logging + CORS + input validation
 
 ## 🧩 TODO (Roadmap)
+* [ ] Hybrid Search (semantic + keyword (BM25)), MMR — Diversity Ranking, Query Rewriting Node and Token optimization / Cost Tracking
 * [ ] Document Incremental changes ingestion fix
 * [ ] Evaluation
 * [ ] Observability (LangSmith / tracing)
