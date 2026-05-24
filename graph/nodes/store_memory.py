@@ -26,6 +26,6 @@ def store_memory(state):
 
     ttl = get_settings().redis_ttl_seconds
     redis.set(state["user_id"], json.dumps(data), ex=ttl)
-    logger.debug("Stored memory for user %s (TTL=%ds)", state["user_id"], ttl)
+    logger.info("Stored memory for user %s (TTL=%ds)", state["user_id"], ttl)
 
     return state

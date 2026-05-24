@@ -4,6 +4,7 @@ from functools import lru_cache
 
 from langchain_core.messages import AIMessage, HumanMessage
 
+from prompts.answer import build_answer_prompt
 from utils.llm_adapter import get_llm
 
 logger = logging.getLogger(__name__)
@@ -36,30 +37,16 @@ def generate_answer(state):
         for m in recent
     )
 
-    prompt = f"""You are a helpful assistant.
-
-Conversation Summary:
-{summary}
-
-Recent Chat:
-{history}
-
-Relevant Context:
-{docs}
-
-User Question:
-{question}
-
-Rules:
-- Answer ONLY from the context above if possible.
-- Be concise (2-3 sentences max).
-- Do not repeat history.
-- YOU MUST respond in {lang} only. No exceptions.
-  (Pure English question → English. Any Arabic characters present, even mixed → Arabic.)
-"""
+    prompt = build_answer_prompt(
+        summary=summary,
+        history=history,
+        docs=docs,
+        question=question,
+        lang=lang,
+    )
 
     response = _get_chat().invoke(prompt)
-    logger.debug("Generated answer for user %s (lang=%s)", state.get("user_id"), lang)
+    logger.info("Generated answer for user %s (lang=%s)", state.get("user_id"), lang)
 
     return {
         "messages": messages + [

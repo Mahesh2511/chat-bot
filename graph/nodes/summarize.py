@@ -4,6 +4,7 @@ from functools import lru_cache
 
 from langchain_core.messages import HumanMessage
 
+from prompts.summarize import build_summarize_prompt
 from utils.llm_adapter import get_llm
 
 logger = logging.getLogger(__name__)
@@ -34,15 +35,10 @@ def summarize(state):
         for m in messages
     )
 
-    summary = _get_chat().invoke(f"""Summarize this conversation in max 4 lines.
-Focus only on: user intent, key questions, important answers.
-YOU MUST write the summary in {lang} only. No exceptions.
+    prompt = build_summarize_prompt(text=text, lang=lang)
+    summary = _get_chat().invoke(prompt)
 
-Conversation:
-{text}
-""")
-
-    logger.debug("Summarized conversation (%d messages, lang=%s)", len(messages), lang)
+    logger.info("Summarized conversation (%d messages, lang=%s)", len(messages), lang)
 
     return {
         **state,

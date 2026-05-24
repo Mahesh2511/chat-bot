@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Header, HTTPException
 
-from schemas.router_schema import ChatRequest
+from schemas.chat import ChatRequest
 from services.chat_service import conversation
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ def chat_controller(
 ):
     try:
         answer = conversation(user_id=x_user_id, q=request.q)
+        logger.info("Chat response generated for user %s", x_user_id)
         return {"status": "success", "data": answer}
     except Exception:
         logger.exception("Chat failed for user %s", x_user_id)

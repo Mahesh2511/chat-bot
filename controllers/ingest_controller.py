@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from schemas.router_schema import IngestRequest
+from schemas.ingest import IngestRequest
 from services.ingest_service import ingest_file
 
 logger = logging.getLogger(__name__)
