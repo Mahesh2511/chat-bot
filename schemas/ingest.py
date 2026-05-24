@@ -1,4 +1,5 @@
 import re
+
 from pydantic import BaseModel, HttpUrl, field_validator
 
 
@@ -23,18 +24,4 @@ class IngestRequest(BaseModel):
             raise ValueError("file_name must not contain path separators or dots")
         if len(v) > 128:
             raise ValueError("file_name too long (max 128 characters)")
-        return v
-
-
-class ChatRequest(BaseModel):
-    q: str
-
-    @field_validator("q")
-    @classmethod
-    def question_not_empty(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
-            raise ValueError("Question cannot be empty")
-        if len(v) > 2000:
-            raise ValueError("Question too long (max 2000 characters)")
         return v

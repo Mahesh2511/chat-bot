@@ -23,5 +23,6 @@ def load_memory(state):
         else:
             messages.append(AIMessage(content=m["content"]))
 
-    logger.debug("Loaded memory for user %s (%d messages)", user_id, len(messages))
+    # Placeholder for a string value (user_id). The %s in the log message will be replaced by this value (user_id) when the log is recorded. The %d is a placeholder for an integer value (number of messages). The logger will automatically convert the number of messages to an integer when formatting the log message.
+    logger.info("Loaded memory for user %s (%d messages)", user_id, len(messages))
     return {"messages": messages, "summary": data.get("summary", "")}
