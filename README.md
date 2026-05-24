@@ -209,6 +209,7 @@ Configurable via environment variables:
 * ✅ Structured logging + CORS + input validation
 
 ## 🧩 TODO (Roadmap)
+* [ ] Document Incremental changes ingestion fix
 * [ ] Evaluation
 * [ ] Observability (LangSmith / tracing)
 
