@@ -21,7 +21,7 @@ It supports:
 
 * Conversational memory
 * Document-based Q&A (RAG)
-* Context-aware responses
+* Strict knowledge-base-only responses — the bot refuses to answer outside ingested documents
 * Multilingual responses (Arabic / English)
 * Scalable backend design
 
@@ -63,6 +63,32 @@ Response to User
    - memory → retrieval → reasoning → response
 5. LLM generates a final contextual answer
 6. Conversation is updated + summarized for future use
+
+## 🗂️ Project Structure
+
+```
+chat-bot/
+├── api/                  # FastAPI routers (chat, ingest)
+├── controllers/          # Route handler logic
+├── core/                 # Middleware (rate limiting, logging, request ID)
+├── db/                   # Redis and ChromaDB clients
+├── graph/
+│   ├── builder.py        # LangGraph pipeline definition
+│   └── nodes/            # Individual graph nodes (load_memory, retrieve_context, generate_answer, summarize, store_memory)
+├── ingest/               # Document download and chunking logic
+├── prompts/
+│   ├── answer.py         # Answer generation prompt
+│   └── summarize.py      # Conversation summarization prompt
+├── schemas/
+│   ├── chat.py           # ChatRequest schema
+│   └── ingest.py         # IngestRequest schema
+├── services/             # Business logic (chat, ingest)
+├── utils/                # LLM and embedding adapters
+├── main.py               # App entrypoint
+├── config.py             # Settings (pydantic-settings)
+├── docker-compose.yml
+└── requirements.txt
+```
 
 ## ⚙️ Setup Instructions
 
@@ -111,6 +137,8 @@ REDIS_PORT=6379
 ```
 
 See [.env.example](.env.example) for the full list of options.
+
+> **LangSmith (optional):** Tracing is disabled by default (`LANGSMITH_TRACING=false`). To enable it, set `LANGSMITH_TRACING=true` and provide a valid `LANGSMITH_API_KEY` from [smith.langchain.com](https://smith.langchain.com).
 
 ## 🚀 5. Run Server
 
