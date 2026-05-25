@@ -237,9 +237,9 @@ Configurable via environment variables:
 * ✅ Structured logging + CORS + input validation
 
 ## 🧩 TODO (Roadmap)
-* [ ] Handling tokenization differences, latency variations & fallback mechanisms
-* [ ] Hybrid Search (semantic + keyword (BM25)), MMR — Diversity Ranking, Query Rewriting Node and Token optimization / Cost Tracking
-* [ ] Document Incremental changes ingestion fix
+* [ ] LLM: Handling tokenization differences, latency variations & fallback mechanisms
+* [ ] Embedding/Search: Hybrid Search (semantic + keyword (BM25)), MMR — Diversity Ranking, Query Rewriting Node and Token optimization / Cost Tracking
+* [ ] Ingestion: Document Incremental changes ingestion fix
 * [ ] Evaluation
 
 ## ⚡ Tech Stack
