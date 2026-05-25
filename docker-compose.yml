@@ -1,5 +1,6 @@
 services:
   api:
+    image: pawarmahesh2511/chatbot-app:${IMAGE_TAG:-latest}
     build: .
     ports:
       - "8000:8000"

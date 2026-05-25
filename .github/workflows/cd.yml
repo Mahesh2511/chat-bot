@@ -1,0 +1,84 @@
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "~/chatbot"
+
+      - name: Pull image and deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: IMAGE_TAG
+          script: |
+            set -e
+            cd ~/chatbot
+
+            # Generate .env from secrets
+            cat <<EOF > .env
+            LLM_PROVIDER=${{ secrets.LLM_PROVIDER }}
+            LLM_MODEL=${{ secrets.LLM_MODEL }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            EMBEDDING_PROVIDER=${{ secrets.EMBEDDING_PROVIDER }}
+            EMBEDDING_MODEL=${{ secrets.EMBEDDING_MODEL }}
+            REDIS_HOST=redis
+            REDIS_PORT=6379
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            REDIS_TTL_SECONDS=86400
+            CHROMA_PERSIST_DIR=./chroma_db
+            CHROMA_COLLECTION=policies
+            MAX_FILE_SIZE_MB=50
+            DOWNLOAD_TIMEOUT_SECONDS=30
+            DEBUG=false
+            LOG_LEVEL=INFO
+            CORS_ORIGINS=["*"]
+            IMAGE_TAG=${IMAGE_TAG}
+            EOF
+
+            # Pull the image built by CI
+            docker pull pawarmahesh2511/chatbot-app:${IMAGE_TAG}
+
+            # Restart containers with the new image
+            IMAGE_TAG=${IMAGE_TAG} docker-compose down
+            IMAGE_TAG=${IMAGE_TAG} docker-compose up -d
+
+            # Health check — retry up to 5 times
+            echo "Running health check..."
+            for i in {1..5}; do
+              sleep 5
+              if curl -sf http://localhost:8000/health; then
+                echo "Health check passed"
+                exit 0
+              fi
+              echo "Attempt $i failed, retrying..."
+            done
+            echo "Health check failed after 5 attempts"
+            exit 1
