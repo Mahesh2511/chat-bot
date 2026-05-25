@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from config import get_settings
 from controllers.chat_controller import router as chat_router
@@ -75,6 +76,4 @@ def health_check():
     return {"status": "ok"}
 
 
-@app.get("/")
-def home():
-    return {"message": "Chatbot Running"}
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
