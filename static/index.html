@@ -299,7 +299,7 @@
     <div class="panel-title">Knowledge Base</div>
 
     <div>
-      <label for="fileName">File name</label>
+      <label for="fileName">File name (no dots or slashes)</label>
       <input id="fileName" type="text" placeholder="e.g. company-policy" />
     </div>
 
@@ -348,7 +348,7 @@
   function getUserId() {
     let id = localStorage.getItem('chatbot_user_id');
     if (!id) {
-      id = crypto.randomUUID();
+      id = 'user-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
       localStorage.setItem('chatbot_user_id', id);
     }
     return id;
@@ -388,8 +388,7 @@
 
     btn.disabled = true;
     btn.textContent = 'Ingesting...';
-    status.className = 'ingest-status';
-    status.style.display = 'none';
+    showIngestStatus('', '');
 
     try {
       const res = await fetch(`${API_BASE}/api/ingest`, {
@@ -399,7 +398,10 @@
       });
       const json = await res.json();
 
-      if (!res.ok) throw new Error(json.detail || 'Ingest failed');
+      if (!res.ok) {
+        const msg = json.details?.map(d => d.message).join(', ') || json.detail || 'Ingest failed';
+        throw new Error(msg);
+      }
 
       const d = json.data;
       if (d.status === 'skipped') {
@@ -420,8 +422,9 @@
 
   function showIngestStatus(type, msg) {
     const el = document.getElementById('ingestStatus');
+    el.style.display = '';
     el.className = `ingest-status ${type}`;
-    el.textContent = (type === 'success' ? '✓ ' : '✗ ') + msg;
+    el.textContent = msg ? (type === 'success' ? '✓ ' : '✗ ') + msg : '';
   }
 
   // ── Chat ──
