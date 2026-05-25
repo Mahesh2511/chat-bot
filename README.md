@@ -68,27 +68,60 @@ Response to User
 
 ```
 chat-bot/
-├── api/                  # FastAPI routers (chat, ingest)
+├── .github/workflows/
+│   ├── ci.yml            # CI pipeline (manual trigger — build & push Docker image)
+│   └── cd.yml            # CD pipeline (auto after CI — deploy to AWS EC2)
 ├── controllers/          # Route handler logic
-├── core/                 # Middleware (rate limiting, logging, request ID)
 ├── db/                   # Redis and ChromaDB clients
 ├── graph/
 │   ├── builder.py        # LangGraph pipeline definition
 │   └── nodes/            # Individual graph nodes (load_memory, retrieve_context, generate_answer, summarize, store_memory)
 ├── ingest/               # Document download and chunking logic
-├── prompts/
-│   ├── answer.py         # Answer generation prompt
-│   └── summarize.py      # Conversation summarization prompt
-├── schemas/
-│   ├── chat.py           # ChatRequest schema
-│   └── ingest.py         # IngestRequest schema
+├── prompts/              # LLM prompt templates
+├── schemas/              # Request/response validation (Pydantic)
 ├── services/             # Business logic (chat, ingest)
+├── static/
+│   └── index.html        # Frontend UI (chat + ingest)
 ├── utils/                # LLM and embedding adapters
 ├── main.py               # App entrypoint
 ├── config.py             # Settings (pydantic-settings)
+├── Dockerfile
 ├── docker-compose.yml
 └── requirements.txt
 ```
+
+## 🌐 Frontend UI
+
+A built-in chat interface is served at the root URL once the app is running.
+
+```
+http://<host>:8000
+```
+
+**Left panel — Knowledge Base**
+- Enter a file name (no dots or slashes, e.g. `company-policy`)
+- Paste an S3 PDF URL
+- Click **Ingest PDF** — shows page and chunk count on success
+
+**Right panel — Chat**
+- Type a question and press **Enter** (Shift+Enter for new line)
+- Conversation memory persists across page refreshes via `localStorage` user ID
+- Click **Clear Chat** to start a fresh conversation
+
+---
+
+## 🚀 CI/CD Pipeline
+
+Two separate GitHub Actions workflows — see [CI_CD.md](CI_CD.md) for the full setup guide.
+
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| `ci.yml` | Manual (`workflow_dispatch`) | Install deps → Docker build → push to Docker Hub |
+| `cd.yml` | Auto after CI succeeds | SSH to EC2 → generate `.env` → pull image → deploy → health check |
+
+Docker Hub: `pawarmahesh2511/chatbot-app`
+
+---
 
 ## ⚙️ Setup Instructions
 
@@ -126,19 +159,25 @@ cp .env.example .env
 Key variables:
 
 ```env
-👉 Get your key from: https://platform.openai.com/account/api-keys
-OPENAI_API_KEY=your_openai_key_here
+# Free option — Groq (recommended for getting started)
+LLM_PROVIDER=groq
+LLM_MODEL=llama-3.1-8b-instant
+GROQ_API_KEY=your_groq_key   # free at console.groq.com
 
-LLM_PROVIDER=openai          # openai | anthropic | groq
+# OR paid — OpenAI
+LLM_PROVIDER=openai
 LLM_MODEL=gpt-4o-mini
+OPENAI_API_KEY=your_openai_key
+
+# Embeddings — free (no API key needed)
+EMBEDDING_PROVIDER=huggingface
+EMBEDDING_MODEL=all-MiniLM-L6-v2
 
 REDIS_HOST=localhost
 REDIS_PORT=6379
 ```
 
 See [.env.example](.env.example) for the full list of options.
-
-> **LangSmith (optional):** Tracing is disabled by default (`LANGSMITH_TRACING=false`). To enable it, set `LANGSMITH_TRACING=true` and provide a valid `LANGSMITH_API_KEY` from [smith.langchain.com](https://smith.langchain.com).
 
 ## 🚀 5. Run Server
 
